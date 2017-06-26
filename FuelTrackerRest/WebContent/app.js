@@ -40,7 +40,40 @@ var buildList = function(data) {
 		var deleteButton = $('<button>').text('Delete').attr('id', entry.id);
 		var editButton = $('<button>').text('Edit').attr('id', entry.id);
 		deleteButton.on('click', deleteButtonFunction);
-		editButton.on('click', loadFillUpEditForm);
+		editButton.on('click', function(){
+			
+	
+		///
+		///
+			$('#table').load('editForm.html', function() {
+				$(fillUpEdit.submit).on('click', function(e) {
+					e.preventDefault();
+					var obj = {
+						gallons : $(fillUpEdit.gallons).val(),
+						price : $(fillUpEdit.price).val(),
+						startMiles : currentMiles,
+						endMiles : $(fillUpEdit.endMiles).val()
+					}
+					var myReq = $.ajax({
+						type : "PUT",
+						url : "rest/fueltracker/" + entry.id,
+						dataType : "json",
+						contentType : 'application/json',
+						data : JSON.stringify(obj)
+					});
+					myReq.done(function(data, status) {
+						$('#table').empty();
+						start();
+					});
+					myReq.fail(function(xhr, status, error) {
+						console.log('It blew up again');
+					});
+				});
+			});
+		
+		///
+		///
+		});
 		tr.append(td1, td2, td3, td4, editButton, deleteButton);
 		tbody.append(tr);
 		console.log(entry.price);
@@ -59,7 +92,8 @@ var loadFillUpEntryForm = function() {
 	});
 }
 
-var loadFillUpEditForm = function() {
+var loadFillUpEditForm = function(e) {
+	console.log(e);
 	$('#table').load('editForm.html', function() {
 		$(fillUpEdit.submit).on('click', function(e) {
 			e.preventDefault();
