@@ -40,7 +40,7 @@ var buildList = function(data) {
 		var deleteButton = $('<button>').text('Delete').attr('id', entry.id);
 		var editButton = $('<button>').text('Edit').attr('id', entry.id);
 		deleteButton.on('click', deleteButtonFunction);
-//		editButton.on('click', loadFillUpEditForm());
+		editButton.on('click', loadFillUpEditForm);
 		tr.append(td1, td2, td3, td4, editButton, deleteButton);
 		tbody.append(tr);
 		console.log(entry.price);
@@ -59,35 +59,35 @@ var loadFillUpEntryForm = function() {
 	});
 }
 
-//var loadFillUpEditForm = function() {
-//	$('#table').load('editForm.html', function() {
-//		$(fillUpEdit.submit).on('click', function(e) {
-//			e.preventDefault();
-//			var obj = {
-//				gallons : $(fillUpEntry.gallons).val(),
-//				price : $(fillUpEntry.price).val(),
-//				startMiles : currentMiles,
-//				endMiles : $(fillUpEntry.endMiles).val()
-//			}
-//			currentMiles = $(fillUpEntry.endMiles).val();
-//			console.log($(e).attr('id'))
-//			var myReq = $.ajax({
-//				type : "POST",
-//				url : "rest/fueltracker/",
-//				dataType : "json",
-//				contentType : 'application/json',
-//				data : JSON.stringify(obj)
-//			});
-//			myReq.done(function(data, status) {
-//				$('#table').empty();
-//				start();
-//			});
-//			myReq.fail(function(xhr, status, error) {
-//				console.log('It blew up again');
-//			});
-//		});
-//	});
-//}
+var loadFillUpEditForm = function() {
+	$('#table').load('editForm.html', function() {
+		$(fillUpEdit.submit).on('click', function(e) {
+			e.preventDefault();
+			var obj = {
+				gallons : $(fillUpEntry.gallons).val(),
+				price : $(fillUpEntry.price).val(),
+				startMiles : currentMiles,
+				endMiles : $(fillUpEntry.endMiles).val()
+			}
+			currentMiles = $(fillUpEntry.endMiles).val();
+			console.log($(e).attr('id'))
+			var myReq = $.ajax({
+				type : "POST",
+				url : "rest/fueltracker/",
+				dataType : "json",
+				contentType : 'application/json',
+				data : JSON.stringify(obj)
+			});
+			myReq.done(function(data, status) {
+				$('#table').empty();
+				start();
+			});
+			myReq.fail(function(xhr, status, error) {
+				console.log('It blew up again');
+			});
+		});
+	});
+}
 
 var deleteButtonFunction = function() {
 	var myReq = $.ajax({
