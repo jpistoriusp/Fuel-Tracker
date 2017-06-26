@@ -1,42 +1,16 @@
 $(document).ready(function() {
 	start();
 });
+var currentMiles = 0;
 
 var start = function() {
 	var myReq = $.ajax({
 		type : "GET",
-		url : "api/fueltracker",
+		url : "rest/fueltracker",
 		dataType : "json"
 	});
 	myReq.done(function(data, status) {
-		console.log(data);
-		console.log(status);
 		buildList(data);
-	});
-	myReq.fail(function(xhr, status, error) {
-		console.log('It blew up again');
-		console.log(error);
-	});
-}
-
-var create = function(){
-	var createButton = $('<button>').text("Create FillUp");
-	createButton.on('click', function(){
-		var form = $('<form>');
-	})
-}
-
-var loadQuestions = function(id, name) {
-	console.log(id);
-	var myReq = $.ajax({
-		type : "GET",
-		url : "api/fueltracker/" + id + "/fueltracker",
-		dataType : "json"
-	});
-	myReq.done(function(data, status) {
-		console.log(status);
-		$('#table').empty();
-		listQuestions(data, name);
 	});
 	myReq.fail(function(xhr, status, error) {
 		console.log('It blew up again');
@@ -48,56 +22,106 @@ var buildList = function(data) {
 	var table = $('<table>');
 	var thead = $('<thead>');
 	var tbody = $('<tbody>');
-	var tr = $('<tr>');
 	var tr2 = $('<tr>');
-	var th = $('<th>').text("Quiz Name");
-	var th2 = $('<th>').text("View");
-	tr.append(th);
-	tr.append(th2);
-	thead.append(tr);
+	var th = $('<th>').text("Starting Mileage");
+	var th2 = $('<th>').text("Ending Mileage");
+	var th3 = $('<th>').text("Gallons");
+	var th4 = $('<th>').text("Price");
+	tr2.append(th, th2, th3, th4);
+	thead.append(tr2);
 	table.append(thead);
-	data.forEach(function(quiz, idx, array) {
+	data.forEach(function(entry, idx, array) {
 		var tr = $('<tr>')
-		var td = $('<td>').text(quiz.name);
-		var viewButton = $('<button>').text('View').attr('id', quiz.id);
-		viewButton.on('click', function() {
-			var myReq = $.ajax({
-				type : "GET",
-				url : "api/quizzes/" + $(this).attr('id'),
-				dataType : "json"
-			});
-			myReq.done(function(data, status) {
-				loadQuestions(data.id, data.name)
-				console.log(status);
-			});
-			myReq.fail(function(xhr, status, error) {
-				console.log('It blew up again');
-				console.log(error);
-			});
-		});
-		tr.append(td);
-		tr.append(viewButton);
+		var td1 = $('<td>').text(entry.startMiles);
+		var td2 = $('<td>').text(entry.endMiles);
+		var td3 = $('<td>').text(entry.gallons);
+		var td4 = $('<td>').text(entry.price);
+		var deleteButton = $('<button>').text('Delete').attr('deleteid', entry.id);
+		var editButton = $('<button>').text('Edit').attr('editid', entry.id);
+		deleteButton.on('click', deleteButtonFunction);
+		editButton.on('click', loadFillUpEditForm);
+		tr.append(td1, td2, td3, td4, deleteButton, editButton);
 		tbody.append(tr);
 	});
+	var newEntryButton = $('<button>').text('New Entry');
+	newEntryButton.on('click', loadFillUpEntryForm);
+	$('#table').append(newEntryButton);
 	table.append(tbody);
 	$('#table').append(table);
 }
 
-var listQuestions = function(data, quizName){
-	console.log("data:" + data)
-	var list = $('<list>');
-	var ol = $('<ol>');
-	var h1 = $('<h1>').text(quizName).appendTo('#table');
-	data.forEach(function(quest, idx, array){
-		var li = $('<li>').text(quest.questionText).appendTo(ol);
-	})
-	list.append(ol);
-	$('#table').append(list);
-	var backButton = $('<button>');
-	backButton.text('Back To Tracker')
-	backButton.on('click', function(){
+var loadFillUpEntryForm = function() {
+	$('#table').load('Form.html', function(){
+		$(fillUpEntry.submit).on('click', entryForm);
+	});
+}
+
+var loadFillUpEditForm = function() {
+	$('#table').load('Form.html', function(){
+		$(fillUpEntry.submit).on('click', editForm);
+	});
+}
+
+var deleteButtonFunction = function() {
+	var myReq = $.ajax({
+		type : "DELETE",
+		url : "rest/fueltracker/" + $(this).attr('id'),
+	});
+	myReq.done(function(data, status) {
 		$('#table').empty();
 		start();
-	})
-	$('#table').append(backButton);
-}
+	});
+	myReq.fail(function(xhr, status, error) {
+		console.log(error);
+	});
+});
+
+var entryForm = function(e){
+	e.preventDefault();
+	var obj = {
+		gallons : $(fillUpEntry.gallons).val(),
+		price : $(fillUpEntry.price).val(),
+		startMiles : currentMiles,
+		endMiles : $(fillUpEntry.endMiles).val()
+	}
+	currentMiles = $(fillUpEntry.endMiles).val();
+	var myReq = $.ajax({
+		type : "POST",
+		url : "rest/fueltracker",
+		dataType : "json",
+		contentType: 'application/json',
+		data: JSON.stringify(obj)
+	});
+	myReq.done(function(data, status) {
+		$('#table').empty();
+		start();
+	});
+	myReq.fail(function(xhr, status, error) {
+		console.log('It blew up again');
+	});
+});
+
+var editForm = function(e){
+	e.preventDefault();
+	var obj = {
+		gallons : $(fillUpEntry.gallons).val(),
+		price : $(fillUpEntry.price).val(),
+		startMiles : currentMiles,
+		endMiles : $(fillUpEntry.endMiles).val()
+	}
+	currentMiles = $(fillUpEntry.endMiles).val();
+	var myReq = $.ajax({
+		type : "POST",
+		url : "rest/fueltracker",
+		dataType : "json",
+		contentType: 'application/json',
+		data: JSON.stringify(obj)
+	});
+	myReq.done(function(data, status) {
+		$('#table').empty();
+		start();
+	});
+	myReq.fail(function(xhr, status, error) {
+		console.log('It blew up again');
+	});
+});
